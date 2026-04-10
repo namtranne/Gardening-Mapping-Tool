@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garden Diary Mapper</title>
+  <meta name="description" content="Map garden diary data into a mapping workbook directly in your browser." />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-1: #070a1a;
+      --bg-2: #0b1330;
+      --neon-cyan: #23f5ff;
+      --neon-pink: #ff4fd8;
+      --neon-lime: #98ff54;
+      --text: #e7ecff;
+      --muted: #a3b0d6;
+      --card: rgba(13, 21, 52, 0.65);
+      --border: rgba(79, 124, 255, 0.35);
+      --danger: #ff6d8d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(35, 245, 255, 0.14), transparent 60%),
+        radial-gradient(1000px 500px at 90% 0%, rgba(255, 79, 216, 0.14), transparent 55%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .wrap {
+      width: min(980px, 100%);
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03) inset,
+        0 10px 40px rgba(5, 10, 30, 0.55),
+        0 0 50px rgba(35, 245, 255, 0.08);
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      letter-spacing: 0.02em;
+      text-shadow: 0 0 18px rgba(35, 245, 255, 0.25), 0 0 24px rgba(255, 79, 216, 0.18);
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: rgba(6, 13, 36, 0.56);
+      border: 1px solid rgba(108, 156, 255, 0.24);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #dbe7ff;
+    }
+
+    .file {
+      width: 100%;
+      border: 1px dashed rgba(35, 245, 255, 0.5);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--text);
+      background: rgba(7, 20, 42, 0.42);
+      outline: none;
+    }
+
+    .hint {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      min-height: 1.2em;
+    }
+
+    .footer {
+      margin-top: 8px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .outname {
+      flex: 1 1 320px;
+      min-width: 180px;
+      border: 1px solid rgba(147, 175, 255, 0.35);
+      border-radius: 10px;
+      padding: 11px 12px;
+      color: var(--text);
+      background: rgba(8, 18, 44, 0.58);
+    }
+
+    button {
+      border: 0;
+      border-radius: 11px;
+      padding: 11px 16px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      color: #031721;
+      background: linear-gradient(120deg, var(--neon-cyan), #58ffd4 55%, var(--neon-lime));
+      box-shadow: 0 0 24px rgba(35, 245, 255, 0.25);
+    }
+
+    button:hover { filter: brightness(1.05); }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      filter: grayscale(0.2);
+    }
+
+    .status {
+      margin-top: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(159, 191, 255, 0.22);
+      padding: 12px;
+      background: rgba(7, 17, 40, 0.45);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      color: #d7e4ff;
+      min-height: 56px;
+    }
+
+    .status.ok { border-color: rgba(152, 255, 84, 0.35); color: #dcffbf; }
+    .status.err { border-color: rgba(255, 109, 141, 0.35); color: #ffd1db; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(35, 245, 255, 0.09);
+      border: 1px solid rgba(35, 245, 255, 0.35);
+      color: #abf8ff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      margin-top: 14px;
+      font-size: 0.83rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="title">🌱 Garden Diary Mapper</h1>
+      <p class="subtitle">
+        Upload <strong>source workbook</strong> and <strong>mapping workbook</strong>.
+        The app maps activities by <em>lot number + date</em> and downloads an updated file.
+      </p>
+
+      <div class="grid">
+        <div class="panel">
+          <label for="sourceFile">1) Source workbook</label>
+          <input id="sourceFile" class="file" type="file" accept=".xlsx,.xlsm,.xls" />
+          <div id="sourceHint" class="hint">Expected sheets like: lô 1, lô 2, ...</div>
+        </div>
+
+        <div class="panel">
+          <label for="mappingFile">2) Mapping workbook</label>
+          <input id="mappingFile" class="file" type="file" accept=".xlsx,.xlsm,.xls" />
+          <div id="mappingHint" class="hint">The first sheet is updated (columns E:H).</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <input id="outputName" class="outname" type="text" placeholder="Output name (optional), e.g. Mapping File - updated.xlsx" />
+        <button id="runBtn" type="button">Generate Output</button>
+      </div>
+
+      <div class="badge"><span class="dot"></span> Works fully in-browser (good for GitHub Pages)</div>
+      <div id="status" class="status">Waiting for files...</div>
+    </section>
+  </main>
+
+  <script>
+    const CROP_PROTECTION_COLS = rangeInclusive(3, 17);
+    const WEEDING_COLS = [31, 32];
+    const CULTIVATION_COLS = [...rangeInclusive(18, 30), 34, 35];
+    const HARVEST_COLS = [36];
+
+    const sourceFileInput = document.getElementById('sourceFile');
+    const mappingFileInput = document.getElementById('mappingFile');
+    const sourceHint = document.getElementById('sourceHint');
+    const mappingHint = document.getElementById('mappingHint');
+    const outputNameInput = document.getElementById('outputName');
+    const runBtn = document.getElementById('runBtn');
+    const statusEl = document.getElementById('status');
+
+    sourceFileInput.addEventListener('change', () => {
+      sourceHint.textContent = sourceFileInput.files?.[0]?.name || 'No source file selected';
+    });
+    mappingFileInput.addEventListener('change', () => {
+      const name = mappingFileInput.files?.[0]?.name || 'No mapping file selected';
+      mappingHint.textContent = name;
+      if (!outputNameInput.value && mappingFileInput.files?.[0]?.name) {
+        outputNameInput.value = defaultOutputName(mappingFileInput.files[0].name);
+      }
+    });
+
+    runBtn.addEventListener('click', async () => {
+      const sourceFile = sourceFileInput.files?.[0];
+      const mappingFile = mappingFileInput.files?.[0];
+
+      if (!sourceFile || !mappingFile) {
+        setStatus('Please select both source and mapping files.', true);
+        return;
+      }
+
+      runBtn.disabled = true;
+      setStatus('Reading workbooks...');
+
+      try {
+        const [sourceWb, mappingWb] = await Promise.all([
+          readWorkbook(sourceFile),
+          readWorkbook(mappingFile)
+        ]);
+
+        setStatus('Analyzing source workbook...');
+        const sourceFlags = buildSourceFlags(sourceWb);
+
+        setStatus('Updating mapping workbook...');
+        const summary = applyFlagsToMapping(mappingWb, sourceFlags);
+
+        const outputName = safeOutputName(
+          outputNameInput.value.trim() || defaultOutputName(mappingFile.name)
+        );
+
+        XLSX.writeFile(mappingWb, outputName, { bookType: 'xlsx' });
+
+        setStatus(
+          `Done ✅\n` +
+          `Saved: ${outputName}\n` +
+          `Updated mapping rows: ${summary.updatedRows}\n` +
+          `Source sheet/date combinations without a matching mapping row: ${summary.unmatchedSource}`,
+          false,
+          true
+        );
+      } catch (err) {
+        console.error(err);
+        setStatus(`Error: ${err?.message || String(err)}`, true);
+      } finally {
+        runBtn.disabled = false;
+      }
+    });
+
+    function setStatus(message, isError = false, isOk = false) {
+      statusEl.textContent = message;
+      statusEl.classList.remove('err', 'ok');
+      if (isError) statusEl.classList.add('err');
+      if (isOk) statusEl.classList.add('ok');
+    }
+
+    async function readWorkbook(file) {
+      const buffer = await file.arrayBuffer();
+      return XLSX.read(buffer, { type: 'array', cellDates: true, cellNF: false, cellText: false });
+    }
+
+    function rangeInclusive(a, b) {
+      return Array.from({ length: b - a + 1 }, (_, i) => a + i);
+    }
+
+    function extractInt(text) {
+      if (text === null || text === undefined) return null;
+      const m = String(text).match(/(\d+)/);
+      return m ? Number(m[1]) : null;
+    }
+
+    function normalizeDate(value) {
+      if (value === null || value === undefined || value === '') return null;
+
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return toDateKey(value);
+      }
+
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        const parsed = XLSX.SSF.parse_date_code(value);
+        if (!parsed) return null;
+        const d = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+        return toDateKey(d);
+      }
+
+      if (typeof value === 'string') {
+        const s = value.trim();
+        if (!s) return null;
+
+        const vn = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (vn) {
+          const d = new Date(Date.UTC(Number(vn[3]), Number(vn[2]) - 1, Number(vn[1])));
+          return Number.isNaN(d.getTime()) ? null : toDateKey(d);
+        }
+
+        const iso = new Date(s);
+        if (!Number.isNaN(iso.getTime())) return toDateKey(iso);
+      }
+
+      return null;
+    }
+
+    function toDateKey(d) {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function isNumericNonzero(value) {
+      if (value === null || value === undefined) return false;
+      if (typeof value === 'boolean') return false;
+      if (typeof value === 'number') return Number.isFinite(value) && value !== 0;
+      if (typeof value === 'string') {
+        const s = value.trim().replace(',', '.');
+        if (!s) return false;
+        const n = Number(s);
+        return Number.isFinite(n) && n !== 0;
+      }
+      return false;
+    }
+
+    function makeKey(lotNum, dateKey) {
+      return `${lotNum}|${dateKey}`;
+    }
+
+    function getSheetRange(ws) {
+      const ref = ws['!ref'];
+      if (!ref) return null;
+      return XLSX.utils.decode_range(ref);
+    }
+
+    function getCellValue(ws, row1, col1) {
+      const address = XLSX.utils.encode_cell({ r: row1 - 1, c: col1 - 1 });
+      const cell = ws[address];
+      return cell ? cell.v : null;
+    }
+
+    function setCellValue(ws, row1, col1, value) {
+      const address = XLSX.utils.encode_cell({ r: row1 - 1, c: col1 - 1 });
+      if (value === null || value === undefined || value === '') {
+        delete ws[address];
+        return;
+      }
+      ws[address] = { t: 's', v: value };
+    }
+
+    function rowHasAnyNumeric(ws, row1, columns) {
+      return columns.some(col => isNumericNonzero(getCellValue(ws, row1, col)));
+    }
+
+    function buildSourceFlags(sourceWb) {
+      const flagsByKey = new Map();
+
+      for (const sheetName of sourceWb.SheetNames) {
+        const sheetNum = extractInt(sheetName);
+        if (sheetNum === null) continue;
+
+        const ws = sourceWb.Sheets[sheetName];
+        const range = getSheetRange(ws);
+        if (!range) continue;
+
+        const maxRow = range.e.r + 1;
+
+        for (let row = 1; row <= maxRow; row++) {
+          const dateKey = normalizeDate(getCellValue(ws, row, 1));
+          if (!dateKey) continue;
+
+          const key = makeKey(sheetNum, dateKey);
+          if (!flagsByKey.has(key)) {
+            flagsByKey.set(key, {
+              crop_protection: false,
+              weeding: false,
+              cultivation: false,
+              harvesting: false
+            });
+          }
+
+          const rowFlags = flagsByKey.get(key);
+
+          if (rowHasAnyNumeric(ws, row, CROP_PROTECTION_COLS)) rowFlags.crop_protection = true;
+          if (rowHasAnyNumeric(ws, row, WEEDING_COLS)) rowFlags.weeding = true;
+          if (rowHasAnyNumeric(ws, row, CULTIVATION_COLS)) rowFlags.cultivation = true;
+          if (rowHasAnyNumeric(ws, row, HARVEST_COLS)) rowFlags.harvesting = true;
+        }
+      }
+
+      return flagsByKey;
+    }
+
+    function buildMappingRowIndex(mappingWs) {
+      const rowIndex = new Map();
+      const range = getSheetRange(mappingWs);
+      if (!range) return rowIndex;
+
+      const maxRow = range.e.r + 1;
+
+      for (let row = 1; row <= maxRow; row++) {
+        const dateKey = normalizeDate(getCellValue(mappingWs, row, 2));
+        const lotNum = extractInt(getCellValue(mappingWs, row, 3));
+        if (!dateKey || lotNum === null) continue;
+
+        const key = makeKey(lotNum, dateKey);
+        if (!rowIndex.has(key)) rowIndex.set(key, []);
+        rowIndex.get(key).push(row);
+      }
+
+      return rowIndex;
+    }
+
+    function applyFlagsToMapping(mappingWb, sourceFlags) {
+      const firstSheetName = mappingWb.SheetNames[0];
+      if (!firstSheetName) throw new Error('Mapping workbook has no sheets.');
+
+      const ws = mappingWb.Sheets[firstSheetName];
+      const rowIndex = buildMappingRowIndex(ws);
+
+      let updatedRows = 0;
+      let unmatchedSource = 0;
+
+      for (const [key, rows] of rowIndex.entries()) {
+        const flags = sourceFlags.get(key);
+        if (!flags) continue;
+
+        for (const row of rows) {
+          setCellValue(ws, row, 5, flags.crop_protection ? 'x' : null);
+          setCellValue(ws, row, 6, flags.weeding ? 'x' : null);
+          setCellValue(ws, row, 7, flags.cultivation ? 'x' : null);
+          setCellValue(ws, row, 8, flags.harvesting ? 'x' : null);
+          updatedRows += 1;
+        }
+      }
+
+      for (const key of sourceFlags.keys()) {
+        if (!rowIndex.has(key)) unmatchedSource += 1;
+      }
+
+      for (const [key, rows] of rowIndex.entries()) {
+        if (sourceFlags.has(key)) continue;
+        for (const row of rows) {
+          setCellValue(ws, row, 5, null);
+          setCellValue(ws, row, 6, null);
+          setCellValue(ws, row, 7, null);
+          setCellValue(ws, row, 8, null);
+        }
+      }
+
+      ensureRefCoversColumns(ws, 8);
+
+      return { updatedRows, unmatchedSource };
+    }
+
+    function ensureRefCoversColumns(ws, minCol1) {
+      const ref = ws['!ref'];
+      if (!ref) return;
+      const range = XLSX.utils.decode_range(ref);
+      if (range.e.c < minCol1 - 1) {
+        range.e.c = minCol1 - 1;
+        ws['!ref'] = XLSX.utils.encode_range(range);
+      }
+    }
+
+    function defaultOutputName(mappingFileName) {
+      const idx = mappingFileName.lastIndexOf('.');
+      if (idx <= 0) return `${mappingFileName} - updated.xlsx`;
+      const stem = mappingFileName.slice(0, idx);
+      return `${stem} - updated.xlsx`;
+    }
+
+    function safeOutputName(name) {
+      let fixed = name.trim();
+      if (!fixed) fixed = 'mapping-updated.xlsx';
+      if (!/\.xlsx$/i.test(fixed)) fixed += '.xlsx';
+      return fixed;
+    }
+  </script>
+</body>
+</html>
