@@ -368,22 +368,35 @@
       return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     }
 
+    function addDays(date, days) {
+      const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
     function normalizeDate(value) {
       if (value == null || value === "") return null;
       if (value instanceof Date && !Number.isNaN(value.getTime())) {
-        return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        return addDays(value, 1);
       }
       if (typeof value === "number") {
-        return excelSerialToDate(value);
+        const parsed = excelSerialToDate(value);
+        return parsed ? addDays(parsed, 1) : null;
       }
       const tryDate = new Date(value);
       if (!Number.isNaN(tryDate.getTime())) {
-        return new Date(tryDate.getFullYear(), tryDate.getMonth(), tryDate.getDate());
+        return addDays(new Date(tryDate.getFullYear(), tryDate.getMonth(), tryDate.getDate()), 1);
       }
       return null;
     }
 
-    function hasNumber(row, cols) {
+    function dateToExcelSerial(date) {
+      const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+      const excelEpoch = Date.UTC(1899, 11, 30);
+      return (utcMs - excelEpoch) / 86400000;
+    }
+
+function hasNumber(row, cols) {
       for (const c of cols) {
         if (c < row.length) {
           const val = row[c];
@@ -424,8 +437,7 @@
           inThuoc = true;
           inPhan = false;
           thuocStart = i;
-        } else if (h3s.includes("phan") && !h3s.includes("bon") && thuocStart !== null && i > thuocStart && !inPhan) {
-          // Main "Phan" section (not "Bon Phan")
+        } else if (h3s.includes("phan") && thuocStart !== null && i > thuocStart && !inPhan) {
           inThuoc = false;
           inPhan = true;
         } else if (h3s.includes("lam co")) {
@@ -499,20 +511,23 @@
       return { cultivar, records };
     }
 
-    function styleCell(cell, center = false) {
-      cell.font = { name: "Times New Roman", size: 12 };
-      cell.border = {
-        top: { style: "thin", color: { argb: "FF000000" } },
-        left: { style: "thin", color: { argb: "FF000000" } },
-        bottom: { style: "thin", color: { argb: "FF000000" } },
-        right: { style: "thin", color: { argb: "FF000000" } },
+    function styleCell(cell, center = false, numFmt = "General") {
+      cell.style = {
+        ...cell.style,
+        font: { name: "Times New Roman", size: 12 },
+        border: {
+          top: { style: "thin", color: { argb: "FF000000" } },
+          left: { style: "thin", color: { argb: "FF000000" } },
+          bottom: { style: "thin", color: { argb: "FF000000" } },
+          right: { style: "thin", color: { argb: "FF000000" } },
+        },
+        alignment: center
+          ? { horizontal: "center", vertical: "middle" }
+          : { vertical: "middle" },
+        numFmt,
       };
-      if (center) {
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-      }
     }
-
-    async function readAsArrayBuffer(file) {
+async function readAsArrayBuffer(file) {
       return await file.arrayBuffer();
     }
 
@@ -576,17 +591,16 @@
             styleCell(c, true);
 
             c = ws.getCell(currentRow, COL_DATE);
-            c.value = rec.date;
-            c.numFmt = "DD/MM/YYYY";
-            styleCell(c, false);
+            c.value = dateToExcelSerial(rec.date);
+            styleCell(c, false, "DD/MM/YYYY");
 
             c = ws.getCell(currentRow, COL_LOT);
             c.value = lot.lotLabel;
-            styleCell(c, false);
+            styleCell(c, false, "General");
 
             c = ws.getCell(currentRow, COL_CULTIVAR);
             c.value = lot.cultivar;
-            styleCell(c, false);
+            styleCell(c, false, "General");
 
             const activityPairs = [
               [COL_CROP_PROT, rec.crop_protection],
@@ -602,7 +616,7 @@
             }
 
             for (let col = 9; col <= TOTAL_COLS; col += 1) {
-              styleCell(ws.getCell(currentRow, col), false);
+              styleCell(ws.getCell(currentRow, col), false, "General");
             }
 
             currentRow += 1;
