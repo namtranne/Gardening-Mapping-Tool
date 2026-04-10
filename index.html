@@ -12,18 +12,18 @@
 
   <style>
     :root {
-      --bg: #05060f;
-      --panel: rgba(11, 15, 31, 0.78);
-      --text: #e9f3ff;
-      --muted: #95a4c9;
-      --cyan: #00e5ff;
-      --pink: #ff38c5;
-      --violet: #8a7dff;
+      --bg: #f4f7ff;
+      --panel: rgba(255, 255, 255, 0.88);
+      --text: #1b2440;
+      --muted: #61709b;
+      --cyan: #00bad6;
+      --pink: #ff5ac8;
+      --violet: #7a78ff;
       --ok: #42ffb3;
       --warn: #ffd166;
-      --danger: #ff6b8a;
-      --border: rgba(117, 143, 255, 0.35);
-      --glow: 0 0 18px rgba(0, 229, 255, 0.35), 0 0 28px rgba(255, 56, 197, 0.25);
+      --danger: #ff6b8f;
+      --border: rgba(125, 141, 255, 0.26);
+      --glow: 0 24px 60px rgba(81, 95, 181, 0.16);
       --radius: 18px;
     }
 
@@ -36,9 +36,9 @@
       font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(1200px 800px at 0% 0%, rgba(0, 229, 255, 0.12), transparent 55%),
-        radial-gradient(900px 800px at 100% 100%, rgba(255, 56, 197, 0.12), transparent 55%),
-        linear-gradient(145deg, #04050c 0%, #070a18 42%, #0b1127 100%);
+        radial-gradient(1200px 800px at 0% 0%, rgba(0, 186, 214, 0.2), transparent 52%),
+        radial-gradient(900px 700px at 100% 100%, rgba(255, 90, 200, 0.16), transparent 58%),
+        linear-gradient(145deg, #edf2ff 0%, #f6f9ff 50%, #fbfcff 100%);
     }
 
     .shell {
@@ -48,8 +48,16 @@
       border-radius: 24px;
       border: 1px solid var(--border);
       background: var(--panel);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
       box-shadow: var(--glow);
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .title {
@@ -57,11 +65,11 @@
       font-size: clamp(1.4rem, 2.8vw, 2.2rem);
       font-weight: 800;
       letter-spacing: 0.3px;
-      background: linear-gradient(90deg, var(--cyan), #b6fdff 35%, #ffd4f4 75%, var(--pink));
+      background: linear-gradient(95deg, #2a43a8 0%, #0f9db2 30%, #8856db 75%, #cf3ba1 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+      text-shadow: 0 8px 20px rgba(91, 109, 209, 0.16);
     }
 
     .subtitle {
@@ -69,6 +77,17 @@
       color: var(--muted);
       line-height: 1.45;
       font-size: 0.98rem;
+      max-width: 720px;
+    }
+
+    .badge {
+      border: 1px solid rgba(122, 120, 255, 0.32);
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: rgba(122, 120, 255, 0.09);
+      color: #4955a2;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
     .grid {
@@ -86,7 +105,7 @@
       border: 1px solid rgba(116, 146, 255, 0.28);
       border-radius: var(--radius);
       padding: 16px;
-      background: linear-gradient(180deg, rgba(18, 26, 56, 0.48), rgba(8, 11, 23, 0.55));
+      background: linear-gradient(180deg, rgba(245, 248, 255, 0.96), rgba(237, 243, 255, 0.8));
     }
 
     .label {
@@ -99,9 +118,9 @@
     input[type="file"], input[type="text"] {
       width: 100%;
       color: var(--text);
-      border: 1px solid rgba(119, 149, 255, 0.35);
+      border: 1px solid rgba(114, 136, 243, 0.34);
       border-radius: 12px;
-      background: rgba(6, 9, 20, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       padding: 11px 12px;
       font-size: 0.95rem;
       outline: none;
@@ -112,16 +131,22 @@
       border: 0;
       border-radius: 10px;
       padding: 8px 11px;
-      color: #051321;
+      color: white;
       font-weight: 700;
       cursor: pointer;
       margin-right: 10px;
-      background: linear-gradient(90deg, #66f5ff, #9dc3ff);
+      background: linear-gradient(90deg, #4e71ff, #8d6bff);
     }
 
     input:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.2);
+      border-color: #6b84ff;
+      box-shadow: 0 0 0 3px rgba(99, 125, 255, 0.17);
+    }
+
+    .file-meta {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: #4f6098;
     }
 
     .row {
@@ -139,11 +164,19 @@
       cursor: pointer;
       font-weight: 800;
       letter-spacing: 0.3px;
-      color: #04131c;
-      background: linear-gradient(100deg, var(--cyan), #8ed8ff 35%, #ff94df 75%, var(--pink));
+      color: white;
+      background: linear-gradient(100deg, #4463ff 0%, #35b9d4 40%, #8f57e7 100%);
       padding: 12px 16px;
       transition: transform 90ms ease, filter 120ms ease;
-      box-shadow: 0 0 18px rgba(0, 229, 255, 0.35);
+      box-shadow: 0 10px 24px rgba(77, 93, 194, 0.28);
+    }
+
+    .btn.alt {
+      color: #3f4a75;
+      background: #edf1ff;
+      border: 1px solid rgba(115, 134, 230, 0.34);
+      box-shadow: none;
+      font-weight: 700;
     }
 
     .btn:hover { filter: brightness(1.07); }
@@ -151,26 +184,35 @@
     .btn:disabled {
       cursor: not-allowed;
       filter: grayscale(0.45);
-      opacity: 0.7;
+      opacity: 0.6;
     }
 
     .status {
       margin-top: 16px;
       padding: 12px;
       border-radius: 12px;
-      border: 1px solid rgba(135, 170, 255, 0.3);
-      background: rgba(13, 20, 45, 0.65);
-      color: #d8eaff;
+      border: 1px solid rgba(122, 146, 255, 0.32);
+      background: rgba(247, 249, 255, 0.95);
+      color: #33416d;
       white-space: pre-wrap;
       line-height: 1.35;
       min-height: 52px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 0.85rem;
+      font-size: 0.91rem;
     }
 
-    .status.ok { border-color: rgba(66, 255, 179, 0.5); color: #b8ffe2; }
-    .status.warn { border-color: rgba(255, 209, 102, 0.5); color: #ffe8b2; }
-    .status.err { border-color: rgba(255, 107, 138, 0.58); color: #ffd5de; }
+    .status.ok { border-color: rgba(78, 193, 130, 0.55); color: #24543f; background: #effbf4; }
+    .status.warn { border-color: rgba(236, 173, 47, 0.56); color: #7f5a11; background: #fff8e9; }
+    .status.err { border-color: rgba(255, 107, 138, 0.58); color: #7d2237; background: #fff1f4; }
+
+    .howto {
+      margin: 0;
+      padding-left: 20px;
+      color: #5b6794;
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .howto li + li { margin-top: 4px; }
 
     .footer {
       margin-top: 14px;
@@ -180,42 +222,56 @@
 
     .pill {
       display: inline-block;
-      border: 1px solid rgba(127, 157, 255, 0.45);
+      border: 1px solid rgba(127, 157, 255, 0.34);
       border-radius: 999px;
       padding: 4px 10px;
       font-size: 0.78rem;
       margin-top: 4px;
-      color: #cde1ff;
-      background: rgba(13, 22, 50, 0.7);
+      color: #4c5d96;
+      background: rgba(236, 241, 255, 0.92);
     }
   </style>
 </head>
 <body>
   <main class="shell">
-    <h1 class="title">🌱 Gardening Diary Mapper</h1>
+    <div class="hero">
+      <h1 class="title">🌱 Gardening Diary Mapper</h1>
+      <span class="badge">GitHub Pages Ready</span>
+    </div>
     <p class="subtitle">
-      Upload <strong>Data_File.xlsx</strong> and <strong>Mapping_File.xlsx</strong>, then generate an output Excel file directly in your browser.
-      No server required — perfect for GitHub Pages.
+      Upload your two Excel files, click one button, and download the mapped result.
+      Everything runs in your browser (no server, no data upload).
     </p>
 
     <section class="grid">
       <div class="card">
         <label class="label" for="dataFile">Diary file (Data_File.xlsx)</label>
         <input id="dataFile" type="file" accept=".xlsx,.xls" />
+        <div id="dataMeta" class="file-meta">No file selected.</div>
         <span class="pill">Contains 24 diary sheets</span>
       </div>
 
       <div class="card">
         <label class="label" for="mappingFile">Mapping template (Mapping_File.xlsx)</label>
         <input id="mappingFile" type="file" accept=".xlsx,.xls" />
+        <div id="mappingMeta" class="file-meta">No file selected.</div>
         <span class="pill">Headers row 1-8 preserved</span>
+      </div>
+
+      <div class="card full">
+        <ol class="howto">
+          <li>Select <strong>Data_File.xlsx</strong></li>
+          <li>Select <strong>Mapping_File.xlsx</strong></li>
+          <li>Click <strong>Generate Output</strong> to download the final file</li>
+        </ol>
       </div>
 
       <div class="card full">
         <label class="label" for="outputName">Output file name</label>
         <input id="outputName" type="text" value="Output.xlsx" />
         <div class="row">
-          <button id="runBtn" class="btn">Generate Output</button>
+          <button id="runBtn" class="btn" disabled>Generate Output</button>
+          <button id="clearBtn" class="btn alt" type="button">Clear</button>
         </div>
         <div id="status" class="status">Ready.</div>
       </div>
@@ -245,10 +301,30 @@
 
     const statusEl = document.getElementById("status");
     const runBtn = document.getElementById("runBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const dataInput = document.getElementById("dataFile");
+    const mappingInput = document.getElementById("mappingFile");
+    const dataMeta = document.getElementById("dataMeta");
+    const mappingMeta = document.getElementById("mappingMeta");
 
     function setStatus(message, mode = "") {
       statusEl.className = `status ${mode}`.trim();
       statusEl.textContent = message;
+    }
+
+    function updateFileMeta() {
+      const dataFile = dataInput.files?.[0];
+      const mappingFile = mappingInput.files?.[0];
+
+      dataMeta.textContent = dataFile
+        ? `${dataFile.name} (${Math.max(1, Math.round(dataFile.size / 1024))} KB)`
+        : "No file selected.";
+
+      mappingMeta.textContent = mappingFile
+        ? `${mappingFile.name} (${Math.max(1, Math.round(mappingFile.size / 1024))} KB)`
+        : "No file selected.";
+
+      runBtn.disabled = !(dataFile && mappingFile);
     }
 
     function vietAscii(input) {
@@ -438,8 +514,8 @@
     }
 
     async function runMapping() {
-      const dataFile = document.getElementById("dataFile").files?.[0];
-      const mappingFile = document.getElementById("mappingFile").files?.[0];
+      const dataFile = dataInput.files?.[0];
+      const mappingFile = mappingInput.files?.[0];
       let outputName = document.getElementById("outputName").value.trim() || "Output.xlsx";
       if (!outputName.toLowerCase().endsWith(".xlsx")) outputName += ".xlsx";
 
@@ -546,11 +622,23 @@
         console.error(err);
         setStatus(`Failed: ${err.message || err}`, "err");
       } finally {
-        runBtn.disabled = false;
+        updateFileMeta();
       }
     }
 
+    function clearForm() {
+      dataInput.value = "";
+      mappingInput.value = "";
+      document.getElementById("outputName").value = "Output.xlsx";
+      setStatus("Ready.");
+      updateFileMeta();
+    }
+
+    dataInput.addEventListener("change", updateFileMeta);
+    mappingInput.addEventListener("change", updateFileMeta);
     runBtn.addEventListener("click", runMapping);
+    clearBtn.addEventListener("click", clearForm);
+    updateFileMeta();
   </script>
 </body>
 </html>
