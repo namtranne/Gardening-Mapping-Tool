@@ -412,18 +412,20 @@
       let inPhan = false;
       let thuocStart = null;
 
-      const width = Math.max(row3Vals.length, row4Vals.length);
+      const width = Math.min(row3Vals.length, row4Vals.length);
       for (let i = 0; i < width; i += 1) {
-        const h3 = row3Vals[i];
-        const h4 = row4Vals[i];
-        const h3s = h3 == null ? "" : vietAscii(String(h3).trim());
-        const h4s = h4 == null ? "" : vietAscii(String(h4).trim());
+        const h3 = row3Vals[i] ?? "";
+        const h4 = row4Vals[i] ?? "";
+        const h3s = vietAscii(String(h3).trim());
+        const h4s = vietAscii(String(h4).trim());
 
+        // Detect section starts (row 3 markers)
         if (h3s.includes("thuoc bvtv")) {
           inThuoc = true;
           inPhan = false;
           thuocStart = i;
-        } else if (h3s.includes("phan") && thuocStart !== null && i > thuocStart && !inPhan) {
+        } else if (h3s.includes("phan") && !h3s.includes("bon") && thuocStart !== null && i > thuocStart && !inPhan) {
+          // Main "Phan" section (not "Bon Phan")
           inThuoc = false;
           inPhan = true;
         } else if (h3s.includes("lam co")) {
@@ -452,10 +454,11 @@
           sections.san_luong.push(i);
         }
 
-        if (inThuoc && h4 != null && h4s) {
+        // Collect sub-columns within active section
+        if (inThuoc && h4s) {
           if (!sections.thuoc_bvtv.includes(i)) sections.thuoc_bvtv.push(i);
         }
-        if (inPhan && h4 != null && h4s) {
+        if (inPhan && h4s) {
           if (!sections.phan.includes(i)) sections.phan.push(i);
         }
       }
@@ -552,11 +555,14 @@
         const ws = outWb.worksheets[0];
         if (!ws) throw new Error("No worksheet found in mapping template.");
 
-        for (let row = DATA_START_ROW; row <= ws.rowCount; row += 1) {
-          for (let col = 1; col <= TOTAL_COLS; col += 1) {
-            ws.getCell(row, col).value = null;
+        // Clear data rows (keep header rows 1-8 intact)
+        ws.eachRow((row, rowNumber) => {
+          if (rowNumber >= DATA_START_ROW) {
+            for (let col = 1; col <= TOTAL_COLS; col += 1) {
+              row.getCell(col).value = null;
+            }
           }
-        }
+        });
 
         setStatus(`[3/3] Writing output rows...\nDetected ${allLots.length} lots, ${totalRecords} date rows.`);
 
